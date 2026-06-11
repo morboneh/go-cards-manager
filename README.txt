@@ -1,0 +1,1 @@
+Export/Import Backup saves all boards, cards, baskets and quantities. Put images in images/.
