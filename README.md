@@ -43,25 +43,30 @@ Alternatively, you can run the project using VS Code Live Server.
 
 ## Usage
 
+## Usage
+
 ### Home Screen
 
-- Create new boards
-- Select existing boards
-- Manage participants
+- Create a new board
+- Select and open an existing board
+- Import a board or restore a full backup
+- Export all data as a backup
 
 ### Board Screen
 
 - View cards in a grid layout
-- Update card quantities
 - Open card details
+- Update card quantities
 - Add or edit cards
+- Manage participants for the selected board
+- Use board-specific import and export options
 
 ### Data Management
 
-- Export boards
-- Import boards
+- Export a single board
+- Import a single board
 - Create a full backup
-- Restore from backup
+- Restore from a full backup
 
 ## Data Storage
 
