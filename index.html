@@ -1,1 +1,309 @@
-<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GO Card Manager</title><link rel="stylesheet" href="style.css"></head><body><header class="top-title"><h1>GO Card Manager</h1><p>Manage photocards and group order distribution</p></header><main><section id="homeScreen"><div class="box center-box"><h2>My Boards</h2><div class="new-board-row"><input id="newBoardNameInput" placeholder="Album / order name, e.g. Ascend"><button id="addBoardBtn">Create New Board</button></div><div class="home-backup-controls"><button id="fullExportBtn">Export Full Backup</button><label class="import-label">Import Full Backup - replaces all boards<input id="fullImportInput" type="file" accept=".json"></label><label class="import-label">Import Board<input id="boardImportInput" type="file" accept=".json"></label><p class="tiny-note">Import Board adds a new board and does not delete existing boards.</p></div><div id="boardsContainer" class="boards-grid"></div></div></section><section id="boardScreen" class="hidden"><div class="board-header"><button id="backHomeBtn">Back to Boards</button><h2 id="currentBoardTitle"></h2><div class="board-header-actions"><button id="editBoardNameBtn">Edit Board Name</button><button id="duplicateBoardBtn">Duplicate Board</button><button id="deleteBoardBtn" class="danger-btn">Delete Board</button></div></div><section class="top-controls"><div class="top-stack"><div class="box compact-box"><h3>Add Card</h3><label>Card name/ID:<input id="cardNameInput" placeholder="Hanbin 001-1"></label><label>Quantity:<input id="cardQtyInput" type="number" min="0" value="0"></label><label>Image:<input id="cardImageInput" type="file" accept="image/*"></label><label class="checkbox-line"><input id="embedImageCheckbox" type="checkbox">Save image inside browser — heavier</label><p class="tiny-note">Unchecked: saves a light path like images/file-name.png.</p><button id="addCardBtn">Add Card</button></div><div class="box compact-box"><h3>Add Participant</h3><label>Name:<input id="personNameInput" placeholder="Example: Hadas"></label><button id="addPersonBtn">Add Personal Basket</button></div></div><div class="box compact-box management-box"><h3>Management</h3><div class="grid-size-row"><label>Rows:<input id="gridRowsInput" type="number" min="1" value="5"></label><label>Columns:<input id="gridColsInput" type="number" min="1" value="5"></label></div><label>Row labels:<textarea id="rowLabelsInput" rows="3" placeholder="Label 1, Label 2, Label 3"></textarea></label><label>Column labels:<textarea id="colLabelsInput" rows="3" placeholder="Label 1, Label 2, Label 3"></textarea></label><p class="tiny-note">Separate labels with commas.</p><button id="updateGridBtn">Update Grid & Labels</button><button id="saveBtn">Manual Save</button><hr><button id="exportBoardBtn">Export This Board</button><button id="clearBoardBtn" class="danger-btn">Clear Current Board</button></div></section><section class="box"><h2 class="section-title">Main Pool</h2><p class="hint">Drag cards between cells. Empty cells stay visible so you can arrange rows and columns.</p><div id="mainCardsContainer" class="cards-grid"></div></section><section class="box"><h2 class="section-title">Personal Baskets</h2><div id="peopleContainer" class="people-grid"></div></section></section></main><div id="cardModal" class="modal hidden"><div class="modal-content"><button id="closeModalBtn" class="close-btn">X</button><h2 id="modalCardName"></h2><img id="modalCardImage" class="modal-img"><div class="modal-nav-row"><button id="prevCardBtn">Previous</button><button id="nextCardBtn">Next</button></div><div class="modal-qty-row"><button id="decreaseQtyBtn">-1</button><strong>Quantity in main pool:</strong><input id="modalQtyInput" type="number" min="0"><button id="increaseQtyBtn">+1</button></div><button id="setQtyBtn">Update Quantity</button><button id="toggleEditCardBtn" class="edit-card-toggle">Edit Card Details</button><div id="editCardBox" class="edit-card-box hidden"><h3>Edit Card</h3><label>Card name/ID:<input id="editCardNameInput"></label><label>Replace image:<input id="editCardImageInput" type="file" accept="image/*"></label><label class="checkbox-line"><input id="editImageEmbedCheckbox" type="checkbox">Save replacement image inside browser</label><p class="tiny-note">Use this for images that are not already in the site images folder.</p><button id="saveCardChangesBtn">Save Card Changes</button></div><h3>Send to Personal Basket</h3><div id="modalPeopleButtons" class="people-buttons"></div><button id="deleteCardBtn" class="danger-btn">Delete Card Completely</button></div></div><div id="personModal" class="modal hidden"><div class="modal-content small-modal"><button id="closePersonModalBtn" class="close-btn">X</button><h2>Edit Participant</h2><label>Name:<input id="editPersonNameInput"></label><label>Notes:<textarea id="editPersonNotesInput" rows="4" placeholder="Write participant notes here..."></textarea></label><button id="savePersonNameBtn">Save Name</button><button id="deletePersonBtn" class="danger-btn">Delete Basket and Return Cards</button></div></div><div id="boardNameModal" class="modal hidden"><div class="modal-content small-modal"><button id="closeBoardNameModalBtn" class="close-btn">X</button><h2>Edit Board Name</h2><label>Name:<input id="editBoardNameInput"></label><button id="saveBoardNameBtn">Save Board Name</button></div></div><div id="basketModal" class="modal hidden"><div class="modal-content wide-modal"><button id="closeBasketModalBtn" class="close-btn">X</button><h2 id="basketModalTitle"></h2><div id="basketNotesArea" class="basket-notes hidden"></div><button id="editBasketNotesBtn" class="small-secondary-btn">Edit Notes</button><div id="fullBasketContainer" class="full-basket-grid"></div></div></div><script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   GO Card Manager
+  </title>
+  <link href="style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <!-- Page title -->
+  <header class="top-title">
+   <h1>
+    GO Card Manager
+   </h1>
+   <p>
+    Manage photocards and group order distribution
+   </p>
+  </header>
+  <main>
+   <!-- Home screen: create/open boards and import/export backups -->
+   <section id="homeScreen">
+    <div class="box center-box">
+     <h2>
+      My Boards
+     </h2>
+     <div class="new-board-row">
+      <input id="newBoardNameInput" placeholder="Album / order name, e.g. Ascend"/>
+      <button id="addBoardBtn">
+       Create New Board
+      </button>
+     </div>
+     <div class="home-backup-controls">
+      <button id="fullExportBtn">
+       Export Full Backup
+      </button>
+      <label class="import-label">
+       Import Full Backup - replaces all boards
+       <input accept=".json" id="fullImportInput" type="file"/>
+      </label>
+      <label class="import-label">
+       Import Board
+       <input accept=".json" id="boardImportInput" type="file"/>
+      </label>
+      <p class="tiny-note">
+       Import Board adds a new board and does not delete existing boards.
+      </p>
+     </div>
+     <div class="boards-grid" id="boardsContainer">
+     </div>
+    </div>
+   </section>
+   <!-- Board screen: manage cards, grid, and participant baskets -->
+   <section class="hidden" id="boardScreen">
+    <div class="board-header">
+     <button id="backHomeBtn">
+      Back to Boards
+     </button>
+     <h2 id="currentBoardTitle">
+     </h2>
+     <div class="board-header-actions">
+      <button id="editBoardNameBtn">
+       Edit Board Name
+      </button>
+      <button id="duplicateBoardBtn">
+       Duplicate Board
+      </button>
+      <button class="danger-btn" id="deleteBoardBtn">
+       Delete Board
+      </button>
+     </div>
+    </div>
+    <section class="top-controls">
+     <div class="top-stack">
+      <!-- Add a new card to the current board -->
+      <div class="box compact-box">
+       <h3>
+        Add Card
+       </h3>
+       <label>
+        Card name/ID:
+        <input id="cardNameInput" placeholder="Hanbin 001-1"/>
+       </label>
+       <label>
+        Quantity:
+        <input id="cardQtyInput" min="0" type="number" value="0"/>
+       </label>
+       <label>
+        Image:
+        <input accept="image/*" id="cardImageInput" type="file"/>
+       </label>
+       <label class="checkbox-line">
+        <input id="embedImageCheckbox" type="checkbox"/>
+        Save image inside browser &mdash; heavier
+       </label>
+       <p class="tiny-note">
+        Unchecked: saves a light path like images/file-name.png.
+       </p>
+       <button id="addCardBtn">
+        Add Card
+       </button>
+      </div>
+      <!-- Add a participant / personal basket -->
+      <div class="box compact-box">
+       <h3>
+        Add Participant
+       </h3>
+       <label>
+        Name:
+        <input id="personNameInput" placeholder="Example: Hadas"/>
+       </label>
+       <button id="addPersonBtn">
+        Add Personal Basket
+       </button>
+      </div>
+     </div>
+     <!-- Board settings, grid labels, export, and clear actions -->
+     <div class="box compact-box management-box">
+      <h3>
+       Management
+      </h3>
+      <div class="grid-size-row">
+       <label>
+        Rows:
+        <input id="gridRowsInput" min="1" type="number" value="5"/>
+       </label>
+       <label>
+        Columns:
+        <input id="gridColsInput" min="1" type="number" value="5"/>
+       </label>
+      </div>
+      <label>
+       Row labels:
+       <textarea id="rowLabelsInput" placeholder="Label 1, Label 2, Label 3" rows="3"></textarea>
+      </label>
+      <label>
+       Column labels:
+       <textarea id="colLabelsInput" placeholder="Label 1, Label 2, Label 3" rows="3"></textarea>
+      </label>
+      <p class="tiny-note">
+       Separate labels with commas.
+      </p>
+      <button id="updateGridBtn">
+       Update Grid &amp; Labels
+      </button>
+      <button id="saveBtn">
+       Manual Save
+      </button>
+      <hr/>
+      <button id="exportBoardBtn">
+       Export This Board
+      </button>
+      <button class="danger-btn" id="clearBoardBtn">
+       Clear Current Board
+      </button>
+     </div>
+    </section>
+    <section class="box">
+     <h2 class="section-title">
+      Main Pool
+     </h2>
+     <p class="hint">
+      Drag cards between cells. Empty cells stay visible so you can arrange rows and columns.
+     </p>
+     <div class="cards-grid" id="mainCardsContainer">
+     </div>
+    </section>
+    <section class="box">
+     <h2 class="section-title">
+      Personal Baskets
+     </h2>
+     <div class="people-grid" id="peopleContainer">
+     </div>
+    </section>
+   </section>
+  </main>
+  <!-- Card details modal -->
+  <div class="modal hidden" id="cardModal">
+   <div class="modal-content">
+    <button class="close-btn" id="closeModalBtn">
+     X
+    </button>
+    <h2 id="modalCardName">
+    </h2>
+    <img class="modal-img" id="modalCardImage"/>
+    <div class="modal-nav-row">
+     <button id="prevCardBtn">
+      Previous
+     </button>
+     <button id="nextCardBtn">
+      Next
+     </button>
+    </div>
+    <div class="modal-qty-row">
+     <button id="decreaseQtyBtn">
+      -1
+     </button>
+     <strong>
+      Quantity in main pool:
+     </strong>
+     <input id="modalQtyInput" min="0" type="number"/>
+     <button id="increaseQtyBtn">
+      +1
+     </button>
+    </div>
+    <button id="setQtyBtn">
+     Update Quantity
+    </button>
+    <button class="edit-card-toggle" id="toggleEditCardBtn">
+     Edit Card Details
+    </button>
+    <div class="edit-card-box hidden" id="editCardBox">
+     <h3>
+      Edit Card
+     </h3>
+     <label>
+      Card name/ID:
+      <input id="editCardNameInput"/>
+     </label>
+     <label>
+      Replace image:
+      <input accept="image/*" id="editCardImageInput" type="file"/>
+     </label>
+     <label class="checkbox-line">
+      <input id="editImageEmbedCheckbox" type="checkbox"/>
+      Save replacement image inside browser
+     </label>
+     <p class="tiny-note">
+      Use this for images that are not already in the site images folder.
+     </p>
+     <button id="saveCardChangesBtn">
+      Save Card Changes
+     </button>
+    </div>
+    <h3>
+     Send to Personal Basket
+    </h3>
+    <div class="people-buttons" id="modalPeopleButtons">
+    </div>
+    <button class="danger-btn" id="deleteCardBtn">
+     Delete Card Completely
+    </button>
+   </div>
+  </div>
+  <!-- Participant edit modal -->
+  <div class="modal hidden" id="personModal">
+   <div class="modal-content small-modal">
+    <button class="close-btn" id="closePersonModalBtn">
+     X
+    </button>
+    <h2>
+     Edit Participant
+    </h2>
+    <label>
+     Name:
+     <input id="editPersonNameInput"/>
+    </label>
+    <label>
+     Notes:
+     <textarea id="editPersonNotesInput" placeholder="Write participant notes here..." rows="4"></textarea>
+    </label>
+    <button id="savePersonNameBtn">
+     Save Name
+    </button>
+    <button class="danger-btn" id="deletePersonBtn">
+     Delete Basket and Return Cards
+    </button>
+   </div>
+  </div>
+  <!-- Board name edit modal -->
+  <div class="modal hidden" id="boardNameModal">
+   <div class="modal-content small-modal">
+    <button class="close-btn" id="closeBoardNameModalBtn">
+     X
+    </button>
+    <h2>
+     Edit Board Name
+    </h2>
+    <label>
+     Name:
+     <input id="editBoardNameInput"/>
+    </label>
+    <button id="saveBoardNameBtn">
+     Save Board Name
+    </button>
+   </div>
+  </div>
+  <!-- Full participant basket modal -->
+  <div class="modal hidden" id="basketModal">
+   <div class="modal-content wide-modal">
+    <button class="close-btn" id="closeBasketModalBtn">
+     X
+    </button>
+    <h2 id="basketModalTitle">
+    </h2>
+    <div class="basket-notes hidden" id="basketNotesArea">
+    </div>
+    <button class="small-secondary-btn" id="editBasketNotesBtn">
+     Edit Notes
+    </button>
+    <div class="full-basket-grid" id="fullBasketContainer">
+    </div>
+   </div>
+  </div>
+  <script src="script.js">
+  </script>
+ </body>
+</html>
