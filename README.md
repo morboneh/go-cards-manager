@@ -43,8 +43,6 @@ Alternatively, you can run the project using VS Code Live Server.
 
 ## Usage
 
-## Usage
-
 ### Home Screen
 
 - Create a new board
